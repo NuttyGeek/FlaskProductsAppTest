@@ -47,3 +47,34 @@ def products():
                 return { 'message': 'Wrong Payload' }, 400
         else:
             return { 'message': 'Method not supported' }, 404
+        
+
+# CRUD Operations Create, read, Update, Delete
+        
+@app.route('/products/<product_id>', methods=['GET', 'DELETE', 'PUT'])
+def get_product(product_id):
+    token_sent = request.headers.get('Authorization')
+    if(token_sent != token):
+        return { 'message': 'Wrong Token' }
+    else:
+        try:
+            p_id = int(product_id)
+            d = Database()
+            v = PayloadValidations()
+            if (request.method == 'GET'):
+                return d.get_product_by_id(p_id), 200
+            elif (request.method == 'PUT'):
+                if(v.validate_product(request.json)):
+                    return d.update_product(p_id, request.json), 200
+                else: 
+                    return { 'message': 'Payload Not Valid '}, 400
+            elif (request.method == 'DELETE'):
+                d.delete_product(p_id)
+                return { 'message': 'Product Deleted' }, 200
+            else:
+                return { 'message': 'Method not allowed'}, 400
+        except:
+            return { 'message': 'Id is not a Number '}, 400
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5001)
